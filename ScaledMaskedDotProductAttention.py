@@ -3,6 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch_directml
 #See ScaledDotProductAttention.py (largely the same, but adding the mask sublayer for masked multi-head attention. This is used in the decoder (whilst the other version is used in the encoder).
+#NOTE: TOTALLY DEFUNCT. IMPLEMENTED THE MASK WRONG, BUT THEN FOUND A WAY TO IMPLEMENT A MASK IN THE ORIGINAL CLASS AS A PARAMETER
+#(PROBABLY SHOULD'VE THOUGHT OF THAT BEFORE). ANYWAY, I WAS A BIT SLEEP DEPRIVED WHEN DOING THIS AND TOTALLY FORGOT THAT IT'S
+#NOT THE UPPER HALF TRIANGLE THAT GETS REMOVED, JUST AN UPPER TRIANGLE SO THIS DOESN'T REALLY WORK ANYWAY
 class ScaledMaskedDotProductAttention(nn.Module):
     def __init__(self, scale=None):
         super().__init__()
