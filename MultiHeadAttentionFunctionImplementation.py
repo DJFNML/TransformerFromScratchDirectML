@@ -1,6 +1,4 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch_directml
 from ScaledDotProductAttention import ScaledDotProductAttention
 
@@ -16,19 +14,20 @@ class MultiHeadAttentionFunctionImplementation(nn.Module):
         self.h = h
         self.d_k = d_model // h  # dimension per head
 
-        self.W_q = nn.Linear(d_model, d_model)
+        self.W_q = nn.Linear(d_model, d_model) #all the linears (check dimensions after)
         self.W_k = nn.Linear(d_model, d_model)
         self.W_v = nn.Linear(d_model, d_model)
         self.W_o = nn.Linear(d_model, d_model)  # the final "Linear" after concat
 
-    def forward(self, Q, K, V, mask = None):
+        self.ScaledDotProductAttention = ScaledDotProductAttention()
+
+    def forward(self, q, k, v, mask = None):
         #docstring same as in other modules
         """
         Q: (batch, seq_q, d)
         K: (batch, seq_k, d)
         V: (batch, seq_k, d_v)
         """
-        device = torch_directml.device()
 
         batch_size = q.size(0)
 
@@ -37,9 +36,6 @@ class MultiHeadAttentionFunctionImplementation(nn.Module):
         K = self.W_k(k)
         V = self.W_v(v)
 
-        Q = Q.to(device)
-        K = K.to(device)
-        V = V.to(device)
 
         # split into heads: (batch, seq_len, d_model) --> (batch, seq_len, h, d_k)
         # then swap around seq_len and h with transpose so the attention function works properly (batch, h, seq_len, d_k)
@@ -50,8 +46,8 @@ class MultiHeadAttentionFunctionImplementation(nn.Module):
         K = K.view(batch_size, -1, self.h, self.d_k).transpose(1, 2)
         V = V.view(batch_size, -1, self.h, self.d_k).transpose(1, 2)
 
-        # apply the scaled dot-product attention (with the relevant mask(
-        attn_output, attn_weights = ScaledDotProductAttention(Q, K, V, mask)
+        # apply the scaled dot-product attention (with the relevant mask)
+        attn_output, attn_weights = self.ScaledDotProductAttention(Q, K, V, mask)
 
         # concat heads back into full dimension: (batch, h, seq_len, d_k) --> (batch, seq_len, d_model)
         attn_output = attn_output.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)

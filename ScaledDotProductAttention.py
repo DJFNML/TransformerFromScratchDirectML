@@ -15,12 +15,7 @@ class ScaledDotProductAttention(nn.Module):
         K: (batch, seq_k, d)
         V: (batch, seq_k, d_v)
         """
-        #Setup: put everything on the GPU using DirectML (I think? Not sure if it should go here or in main, and pass the whole thing to the GPU then. Will see later)
-        device = torch_directml.device()
 
-        Q = Q.to(device)
-        K = K.to(device)
-        V = V.to(device)
         # Matmul: QK^T (Maths grads will know: computes a bunch of dot products)
         scores = torch.matmul(Q, K.transpose(-2, -1))  # (batch, seq_q, seq_k)
 
